@@ -926,9 +926,10 @@
         <button class="btn" onclick="openTransferBenchmark()">
           ⚡ Parallel Transfer Benchmark
         </button>
-        <a class="btn" href="/api/metrics/export" target="_blank">
-          📥 Export CSV Metrics
-        </a>
+        <button class="btn" onclick="exportMetricsCsv(event)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Export CSV Metrics
+        </button>
       </div>
     </div>
     
@@ -1033,19 +1034,70 @@ async function api(method, path, body){
 
 /* ---------- Upload Handling ---------- */
 const drop = $('drop');
-drop.onclick = () => $('fileInput').click();
-$('fileInput').onchange = e => { if (e.target.files[0]) upload(e.target.files[0]); e.target.value = ''; };
-['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
-['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => { if (e.dataTransfer.files[0]) upload(e.dataTransfer.files[0]); });
+const fileInput = $('fileInput');
+let isUploading = false;
+
+drop.onclick = () => {
+  if (isUploading) return;
+  fileInput.value = '';
+  fileInput.click();
+};
+
+fileInput.onclick = e => {
+  e.target.value = '';
+};
+
+fileInput.onchange = e => {
+  const file = e.target.files && e.target.files[0];
+  if (file) {
+    upload(file);
+  }
+};
+
+['dragenter','dragover'].forEach(ev => {
+  drop.addEventListener(ev, e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isUploading) drop.classList.add('over');
+  });
+});
+
+['dragleave','drop'].forEach(ev => {
+  drop.addEventListener(ev, e => {
+    e.preventDefault();
+    e.stopPropagation();
+    drop.classList.remove('over');
+  });
+});
+
+drop.addEventListener('drop', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (isUploading) return;
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) {
+    upload(file);
+  }
+});
 
 function upload(file){
-  if (file.size > 50 * 1024 * 1024) return toast('File is larger than 50 MB limit', true);
-  const fd = new FormData();
-  fd.append('file', file);
-  const xhr = new XMLHttpRequest();
+  if (isUploading) {
+    return toast('An upload is already in progress, please wait...', true);
+  }
+  if (!file) return;
+  if (file.size > 50 * 1024 * 1024) {
+    fileInput.value = '';
+    return toast('File is larger than 50 MB limit', true);
+  }
+
+  isUploading = true;
+  drop.style.opacity = '0.6';
   $('bar').style.display = 'block';
   $('barFill').style.width = '0%';
+
+  const fd = new FormData();
+  fd.append('file', file, file.name);
+  const xhr = new XMLHttpRequest();
 
   xhr.upload.onprogress = e => {
     if (e.lengthComputable) {
@@ -1053,8 +1105,18 @@ function upload(file){
     }
   };
 
+  const finish = () => {
+    isUploading = false;
+    drop.style.opacity = '1';
+    fileInput.value = '';
+    setTimeout(() => {
+      $('bar').style.display = 'none';
+      $('barFill').style.width = '0%';
+    }, 600);
+  };
+
   xhr.onload = () => {
-    setTimeout(() => $('bar').style.display = 'none', 600);
+    finish();
     let d = {};
     try { d = JSON.parse(xhr.responseText); } catch(e) {}
     if (xhr.status !== 200) return toast(d.error || 'Upload failed', true);
@@ -1062,9 +1124,35 @@ function upload(file){
     refresh();
   };
 
-  xhr.onerror = () => toast('Upload failed: server not reachable', true);
+  xhr.onerror = () => {
+    finish();
+    toast('Upload failed: server not reachable', true);
+  };
+
   xhr.open('POST', '/api/files');
   xhr.send(fd);
+}
+
+/* ---------- CSV Export ---------- */
+async function exportMetricsCsv(e){
+  if (e) e.preventDefault();
+  try {
+    toast('Preparing metrics CSV...');
+    const res = await fetch('/api/metrics/export');
+    if (!res.ok) throw new Error('Export request failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cloudbox_metrics.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    toast('Metrics CSV downloaded successfully');
+  } catch(err) {
+    window.location.href = '/api/metrics/export';
+  }
 }
 
 /* ---------- File Management ---------- */
