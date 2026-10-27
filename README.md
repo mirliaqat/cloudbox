@@ -81,3 +81,54 @@ Ran **34 tests** with 100% pass rate.
 | `app.py` | Flask API gateway, background monitors, health and metrics endpoints |
 | `static/index.html` | Real-time web dashboard with Chart.js charts and benchmark modals |
 | `test_cloudbox.py` | 34 automated unit and integration tests |
+| `render.yaml` | 1-Click Render blueprint configuration |
+| `Dockerfile` | Container configuration for Koyeb, Hugging Face Spaces, and Docker hosts |
+| `Procfile` | WSGI start command for cloud buildpacks |
+
+---
+
+## Free Cloud Deployment (Zero Credit Card Required)
+
+CloudBox includes ready-to-use configuration files for top free cloud hosting providers that do not require any credit card:
+
+### Option 1: Render (Recommended — Easiest & Fastest)
+- **Sign Up**: Go to [render.com](https://render.com) and sign in using your GitHub account (No credit card required).
+- **Deploy**:
+  1. Click **New +** -> **Web Service**.
+  2. Select your repository `mirliaqat/cloudbox`.
+  3. Render will automatically detect the settings:
+     - **Runtime**: `Python`
+     - **Build Command**: `pip install -r requirements.txt`
+     - **Start Command**: `gunicorn --workers 1 --threads 8 --bind 0.0.0.0:$PORT app:app`
+     - **Instance Type**: `Free`
+  4. Click **Deploy Web Service**.
+  5. Your app will be live at `https://<service-name>.onrender.com` in ~2 minutes with automatic HTTPS!
+
+### Option 2: Koyeb
+- **Sign Up**: Go to [koyeb.com](https://www.koyeb.com) and log in with GitHub (No credit card needed for free hobby tier).
+- **Deploy**:
+  1. Click **Create App** -> **GitHub**.
+  2. Select `mirliaqat/cloudbox`.
+  3. Koyeb will automatically detect the `Dockerfile` in the repo.
+  4. Select the **Nano (Free)** tier and click **Deploy**.
+
+### Option 3: PythonAnywhere
+- **Sign Up**: Create a free "Beginner" account at [pythonanywhere.com](https://www.pythonanywhere.com) (No credit card needed).
+- **Deploy**:
+  1. Open a **Bash Console** and run:
+     ```bash
+     git clone https://github.com/mirliaqat/cloudbox.git
+     cd cloudbox
+     pip install -r requirements.txt
+     ```
+  2. Go to the **Web** tab -> **Add a new web app** -> **Manual configuration** -> **Python 3.10+**.
+  3. In the WSGI configuration file, point to `from app import app as application`.
+  4. Reload the web app.
+
+### Option 4: Hugging Face Spaces
+- **Sign Up**: Sign in to [huggingface.co](https://huggingface.co) (Free, no credit card).
+- **Deploy**:
+  1. Click **New Space**.
+  2. Select SDK: **Docker** (Blank).
+  3. Clone the space repo or connect GitHub and push the CloudBox code. It will build and run on port 7860 automatically!
+
