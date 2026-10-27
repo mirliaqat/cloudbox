@@ -13,39 +13,55 @@
     --mono:ui-monospace,SFMono-Regular,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
-  header{background:#fff;border-bottom:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;gap:12px}
-  .logo{width:36px;height:36px;border-radius:10px;background:var(--brand);display:grid;place-items:center}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  header{background:#fff;border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+  .logo{width:36px;height:36px;min-width:36px;border-radius:10px;background:var(--brand);display:grid;place-items:center}
   .logo svg{width:22px;height:22px}
-  header b{font-size:17px;display:block;line-height:1.2}
+  header b{font-size:16px;display:block;line-height:1.2}
   header small{color:var(--muted);font-size:12px}
-  main{max-width:1180px;margin:0 auto;padding:22px;display:grid;gap:18px}
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:540px){
+    header{padding:10px 14px;gap:10px}
+    header small{display:none}
+  }
+  main{max-width:1180px;margin:0 auto;padding:20px;display:grid;gap:18px}
+  @media(max-width:600px){
+    main{padding:12px;gap:12px}
+  }
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  @media(max-width:960px){.stats{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:600px){
+    .stats{grid-template-columns:repeat(2,1fr);gap:8px}
+    .stat{padding:10px 12px}
+    .stat b{font-size:18px}
+  }
+  @media(max-width:380px){.stats{grid-template-columns:1fr}}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
   .stat small{color:var(--muted);font-size:12px}
   .stat b{display:block;font-size:22px}
   .layout{display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start}
   @media(max-width:900px){.layout{grid-template-columns:1fr}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  @media(max-width:600px){.card{padding:14px;border-radius:12px}}
   .card h2{margin:0 0 2px;font-size:15px}
-  .sub{margin:0 0 14px;color:var(--muted);font-size:12.5px}
-  .drop{border:2px dashed #bfdbfe;background:var(--brand-soft);border-radius:12px;padding:26px;text-align:center;cursor:pointer;transition:.15s}
+  .sub{margin:0 0 14px;color:var(--muted);font-size:12.5px;line-height:1.4}
+  .drop{border:2px dashed #bfdbfe;background:var(--brand-soft);border-radius:12px;padding:22px 16px;text-align:center;cursor:pointer;transition:.15s;touch-action:manipulation}
   .drop.over{border-color:var(--brand);background:#dbeafe}
   .drop b{display:block;font-size:15px;margin-bottom:2px}
   .drop span{color:var(--muted);font-size:12.5px}
   .bar{height:6px;border-radius:4px;background:#e2e8f0;overflow:hidden;margin-top:12px;display:none}
   .bar span{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
-  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+  .table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:14px;border-radius:8px}
+  table{width:100%;min-width:540px;border-collapse:collapse;font-size:13px}
   th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
   th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
   td.name{font-weight:600;word-break:break-all}
   td.name small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
   .pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
   .pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.err{background:var(--err-soft);color:var(--err)}
-  .actions{display:flex;gap:6px;justify-content:flex-end}
+  .actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
   td.nw{white-space:nowrap}
-  button,.btn{font:inherit;font-weight:600;font-size:12.5px;border-radius:8px;border:1px solid var(--line);background:#fff;padding:6px 11px;cursor:pointer;color:var(--ink);text-decoration:none;display:inline-block}
+  button,.btn{font:inherit;font-weight:600;font-size:12.5px;border-radius:8px;border:1px solid var(--line);background:#fff;padding:6px 11px;cursor:pointer;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;touch-action:manipulation;min-height:34px;box-sizing:border-box}
   button:hover,.btn:hover{background:#f8fafc}
   button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
   button.primary:hover{background:var(--brand-dark)}
@@ -54,29 +70,44 @@
   .empty{color:var(--muted);text-align:center;padding:26px 0}
   .node{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
   .node.down{background:var(--err-soft);border-color:#fecaca}
-  .nh{display:flex;align-items:center;gap:8px}
+  .nh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .dot{width:10px;height:10px;border-radius:50%;background:var(--ok)}
   .down .dot{background:var(--err)}
   .nh b{font-size:14px}.nh .port{color:var(--muted);font-family:var(--mono);font-size:12px}
   .nh .pill{margin-left:auto}
-  .nm{display:flex;gap:16px;color:var(--muted);font-size:12.5px;margin:8px 0}
+  .nm{display:flex;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font-size:12.5px;margin:8px 0}
   .nm b{color:var(--ink)}
   .log{max-height:260px;overflow:auto;font-family:var(--mono);font-size:12px}
-  .log div{padding:5px 0;border-bottom:1px dashed var(--line)}
+  .log div{padding:5px 0;border-bottom:1px dashed var(--line);word-break:break-word}
   .log .t{color:var(--muted);margin-right:8px}
   .log .ok{color:var(--ok)}.log .warn{color:var(--warn)}.log .error{color:var(--err)}
-  .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;place-items:center;padding:20px}
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;place-items:center;padding:14px;z-index:100;backdrop-filter:blur(2px)}
   .modal.open{display:grid}
-  .modal .card{width:min(540px,100%)}
+  .modal .card{width:min(560px,100%);max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .modal .actions{display:flex;flex-wrap:wrap;gap:8px}
+  @media(max-width:480px){
+    .modal .actions button,.modal .actions .btn{width:100%;text-align:center;margin:0!important}
+  }
   .link{font-family:var(--mono);font-size:12px;background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px;word-break:break-all;margin:10px 0}
-  .toast{position:fixed;bottom:20px;right:20px;background:#0f172a;color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none;max-width:380px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;width:calc(100% - 32px);max-width:420px;box-sizing:border-box;text-align:center;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--err)}
   .load-bar{height:4px;border-radius:2px;background:#e2e8f0;overflow:hidden;margin:6px 0 10px}
   .load-bar span{display:block;height:100%;background:var(--brand);transition:width .3s}
   .strat-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;background:#e0e7ff;color:#3730a3;padding:3px 10px;border-radius:999px;font-weight:600;cursor:pointer}
   .strat-badge:hover{background:#c7d2fe}
-  .bench-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px}
+  .bench-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0}
+  .bench-table{width:100%;min-width:420px;border-collapse:collapse;font-size:12.5px}
   .bench-table th,.bench-table td{padding:8px;border:1px solid var(--line);text-align:center}
   .bench-table th{background:#f8fafc}
+  .analytics-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+  .analytics-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .charts-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr));gap:16px}
+  @media(max-width:600px){
+    .analytics-header{flex-direction:column;align-items:stretch}
+    .analytics-btns{flex-direction:column;width:100%}
+    .analytics-btns .btn{width:100%;text-align:center}
+  }
 </style>
 </head>
 <body>
@@ -86,7 +117,7 @@
 </header>
 
 <main>
-  <div class="stats" style="grid-template-columns:repeat(5,1fr)">
+  <div class="stats">
     <div class="stat"><small>Files</small><b id="sFiles">-</b></div>
     <div class="stat"><small>Stored</small><b id="sBytes">-</b></div>
     <div class="stat"><small>Storage nodes up</small><b id="sNodes">-</b></div>
@@ -100,15 +131,17 @@
         <h2>My files</h2>
         <p class="sub">Files are split into <span id="chunkKb">256</span> KB chunks, encrypted, and every chunk is kept on <span id="rep">2</span> different nodes.</p>
         <div class="drop" id="drop">
-          <b>Drop a file here or click to upload</b>
+          <b>Tap to select or drop a file to upload</b>
           <span>Any file up to 50 MB</span>
           <input type="file" id="fileInput" hidden>
         </div>
         <div class="bar" id="bar"><span id="barFill"></span></div>
-        <table>
-          <thead><tr><th>Name</th><th>Size</th><th>Chunks</th><th>Copies</th><th>Placement</th><th style="text-align:right">Actions</th></tr></thead>
-          <tbody id="files"><tr><td colspan="6" class="empty">No files yet. Upload one to start.</td></tr></tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Size</th><th>Chunks</th><th>Copies</th><th>Placement</th><th style="text-align:right">Actions</th></tr></thead>
+            <tbody id="files"><tr><td colspan="6" class="empty">No files yet. Upload one to start.</td></tr></tbody>
+          </table>
+        </div>
       </section>
 
       <section class="card">
@@ -131,7 +164,7 @@
       </section>
       <section class="card">
         <h2>How to test it</h2>
-        <ol class="how">
+        <ol class="how" style="padding-left:18px;margin:0;line-height:1.6">
           <li>Upload a file (a photo or PDF).</li>
           <li>Stop <b>node-1</b>. The file now shows 1 copy, but Download still works.</li>
           <li>Press <b>Repair</b>. Copies go back to 2 on the running nodes.</li>
@@ -144,17 +177,17 @@
   </div>
 
   <section class="card" style="margin-top:2px">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+    <div class="analytics-header">
       <div>
         <h2 style="font-size:16px">Performance & Storage Analytics</h2>
         <p class="sub" style="margin:0">Real-time throughput, per-node storage consumption, and replication overhead (Phase 4)</p>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div class="analytics-btns">
         <button class="btn" onclick="openTransferBenchmark()" style="font-size:12px">⚡ Transfer Benchmark (Parallel vs Sequential)</button>
         <a class="btn" href="/api/metrics/export" target="_blank" style="font-size:12px">📥 Export Metrics (CSV)</a>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:18px">
+    <div class="charts-grid">
       <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px">
         <div style="font-weight:600;font-size:13px;margin-bottom:8px">Throughput Over Time (MB/s)</div>
         <div style="height:190px"><canvas id="throughputChart"></canvas></div>
@@ -337,25 +370,27 @@ async function runBenchmark(){
   const nodes = Object.keys(data.round_robin.counts);
   $('benchBody').innerHTML = `
     <div style="font-size:12.5px;margin-bottom:8px">Added <b>${data.chunks_added} chunks</b> across nodes with initial skew (Node 1 started with ${data.initial_skew['node-1'] || 0} chunks):</div>
-    <table class="bench-table">
-      <thead>
-        <tr><th>Strategy</th>${nodes.map(n => `<th>${n}</th>`).join('')}<th>Variance</th><th>Std Dev</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><b>Round-Robin</b></td>
-          ${nodes.map(n => `<td>${data.round_robin.counts[n]}</td>`).join('')}
-          <td style="color:var(--err);font-weight:600">${data.round_robin.variance}</td>
-          <td>${data.round_robin.std_dev}</td>
-        </tr>
-        <tr style="background:#f0fdf4">
-          <td><b style="color:var(--ok)">Load-Aware</b></td>
-          ${nodes.map(n => `<td><b>${data.load_aware.counts[n]}</b></td>`).join('')}
-          <td style="color:var(--ok);font-weight:600">${data.load_aware.variance}</td>
-          <td><b>${data.load_aware.std_dev}</b></td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="bench-table-wrap">
+      <table class="bench-table">
+        <thead>
+          <tr><th>Strategy</th>${nodes.map(n => `<th>${n}</th>`).join('')}<th>Variance</th><th>Std Dev</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Round-Robin</b></td>
+            ${nodes.map(n => `<td>${data.round_robin.counts[n]}</td>`).join('')}
+            <td style="color:var(--err);font-weight:600">${data.round_robin.variance}</td>
+            <td>${data.round_robin.std_dev}</td>
+          </tr>
+          <tr style="background:#f0fdf4">
+            <td><b style="color:var(--ok)">Load-Aware</b></td>
+            ${nodes.map(n => `<td><b>${data.load_aware.counts[n]}</b></td>`).join('')}
+            <td style="color:var(--ok);font-weight:600">${data.load_aware.variance}</td>
+            <td><b>${data.load_aware.std_dev}</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div style="font-size:12px;color:var(--muted);background:#f8fafc;padding:10px;border-radius:8px">
       💡 <b>Intelligent balancing result:</b> Load-Aware placement achieved a lower variance (<b>${data.load_aware.variance}</b> vs <b>${data.round_robin.variance}</b>), successfully directing new chunks toward less loaded nodes to balance data skew.
     </div>
@@ -373,31 +408,33 @@ async function runTransferBenchmark(){
     return;
   }
   $('transferBenchBody').innerHTML = `
-    <table class="bench-table">
-      <thead>
-        <tr><th>Transfer Mode</th><th>Upload Time</th><th>Download Time</th><th>Data Integrity</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><b>Sequential</b></td>
-          <td>${data.sequential_upload_ms} ms</td>
-          <td>${data.sequential_download_ms} ms</td>
-          <td><span class="pill ok">Verified</span></td>
-        </tr>
-        <tr style="background:#f0fdf4">
-          <td><b style="color:var(--ok)">Parallel (4 workers)</b></td>
-          <td><b>${data.parallel_upload_ms} ms</b></td>
-          <td><b>${data.parallel_download_ms} ms</b></td>
-          <td><span class="pill ok">Verified</span></td>
-        </tr>
-        <tr style="background:#eff6ff;font-weight:600">
-          <td>Speedup Factor</td>
-          <td style="color:var(--brand)">${data.upload_speedup}x faster</td>
-          <td style="color:var(--brand)">${data.download_speedup}x faster</td>
-          <td style="color:var(--ok)">${data.data_identical ? '100% Match' : 'Mismatch'}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="bench-table-wrap">
+      <table class="bench-table">
+        <thead>
+          <tr><th>Transfer Mode</th><th>Upload Time</th><th>Download Time</th><th>Data Integrity</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Sequential</b></td>
+            <td>${data.sequential_upload_ms} ms</td>
+            <td>${data.sequential_download_ms} ms</td>
+            <td><span class="pill ok">Verified</span></td>
+          </tr>
+          <tr style="background:#f0fdf4">
+            <td><b style="color:var(--ok)">Parallel (4 workers)</b></td>
+            <td><b>${data.parallel_upload_ms} ms</b></td>
+            <td><b>${data.parallel_download_ms} ms</b></td>
+            <td><span class="pill ok">Verified</span></td>
+          </tr>
+          <tr style="background:#eff6ff;font-weight:600">
+            <td>Speedup Factor</td>
+            <td style="color:var(--brand)">${data.upload_speedup}x faster</td>
+            <td style="color:var(--brand)">${data.download_speedup}x faster</td>
+            <td style="color:var(--ok)">${data.data_identical ? '100% Match' : 'Mismatch'}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div style="font-size:12px;color:var(--muted);background:#f8fafc;padding:10px;border-radius:8px">
       ⚡ <b>Parallel Concurrency Result:</b> ThreadPoolExecutor concurrent workers reduced transfer latency while preserving sequential chunk ordering and bit-for-bit file verification.
     </div>
