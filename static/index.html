@@ -1,255 +1,1037 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CloudBox</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CloudBox 2.0 — Distributed Cloud Storage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  :root{
-    --bg:#f4f7fb; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
-    --brand:#2563eb; --brand-dark:#1d4ed8; --brand-soft:#eff6ff;
-    --ok:#16a34a; --ok-soft:#dcfce7; --warn:#d97706; --warn-soft:#fef3c7; --err:#dc2626; --err-soft:#fee2e2;
-    --mono:ui-monospace,SFMono-Regular,Consolas,monospace;
+  :root[data-theme="dark"] {
+    --bg: #090d16;
+    --bg-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.10) 0px, transparent 50%);
+    --card: rgba(17, 24, 39, 0.85);
+    --card-hover: rgba(30, 41, 59, 0.9);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-border-focus: rgba(99, 102, 241, 0.4);
+    --ink: #f8fafc;
+    --muted: #94a3b8;
+    --subtle: #64748b;
+    --line: rgba(255, 255, 255, 0.08);
+    --brand: #6366f1;
+    --brand-glow: rgba(99, 102, 241, 0.35);
+    --brand-soft: rgba(99, 102, 241, 0.12);
+    --cyan: #06b6d4;
+    --ok: #10b981;
+    --ok-glow: rgba(16, 185, 129, 0.35);
+    --ok-soft: rgba(16, 185, 129, 0.14);
+    --warn: #f59e0b;
+    --warn-soft: rgba(245, 158, 11, 0.14);
+    --err: #f43f5e;
+    --err-soft: rgba(244, 63, 94, 0.15);
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
+    --header-bg: rgba(9, 13, 22, 0.85);
+    --input-bg: rgba(15, 23, 42, 0.6);
   }
-  *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  header{background:#fff;border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
-  .logo{width:36px;height:36px;min-width:36px;border-radius:10px;background:var(--brand);display:grid;place-items:center}
-  .logo svg{width:22px;height:22px}
-  header b{font-size:16px;display:block;line-height:1.2}
-  header small{color:var(--muted);font-size:12px}
-  @media(max-width:540px){
-    header{padding:10px 14px;gap:10px}
-    header small{display:none}
+
+  :root[data-theme="light"] {
+    --bg: #f8fafc;
+    --bg-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.06) 0px, transparent 50%);
+    --card: #ffffff;
+    --card-hover: #ffffff;
+    --card-border: #e2e8f0;
+    --card-border-focus: rgba(99, 102, 241, 0.4);
+    --ink: #0f172a;
+    --muted: #64748b;
+    --subtle: #94a3b8;
+    --line: #e2e8f0;
+    --brand: #4f46e5;
+    --brand-glow: rgba(79, 70, 229, 0.25);
+    --brand-soft: #eff6ff;
+    --cyan: #0891b2;
+    --ok: #059669;
+    --ok-glow: rgba(5, 150, 105, 0.25);
+    --ok-soft: #ecfdf5;
+    --warn: #d97706;
+    --warn-soft: #fffbeb;
+    --err: #e11d48;
+    --err-soft: #fff1f2;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --input-bg: #f8fafc;
   }
-  main{max-width:1180px;margin:0 auto;padding:20px;display:grid;gap:18px}
-  @media(max-width:600px){
-    main{padding:12px;gap:12px}
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image: var(--bg-mesh);
+    background-attachment: fixed;
+    color: var(--ink);
+    font: 14px/1.6 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
   }
-  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-  @media(max-width:960px){.stats{grid-template-columns:repeat(3,1fr)}}
-  @media(max-width:600px){
-    .stats{grid-template-columns:repeat(2,1fr);gap:8px}
-    .stat{padding:10px 12px}
-    .stat b{font-size:18px}
+
+  /* Header */
+  header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
-  @media(max-width:380px){.stats{grid-template-columns:1fr}}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
-  .stat small{color:var(--muted);font-size:12px}
-  .stat b{display:block;font-size:22px}
-  .layout{display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start}
-  @media(max-width:900px){.layout{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
-  @media(max-width:600px){.card{padding:14px;border-radius:12px}}
-  .card h2{margin:0 0 2px;font-size:15px}
-  .sub{margin:0 0 14px;color:var(--muted);font-size:12.5px;line-height:1.4}
-  .drop{border:2px dashed #bfdbfe;background:var(--brand-soft);border-radius:12px;padding:22px 16px;text-align:center;cursor:pointer;transition:.15s;touch-action:manipulation}
-  .drop.over{border-color:var(--brand);background:#dbeafe}
-  .drop b{display:block;font-size:15px;margin-bottom:2px}
-  .drop span{color:var(--muted);font-size:12.5px}
-  .bar{height:6px;border-radius:4px;background:#e2e8f0;overflow:hidden;margin-top:12px;display:none}
-  .bar span{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
-  .table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:14px;border-radius:8px}
-  table{width:100%;min-width:540px;border-collapse:collapse;font-size:13px}
-  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
-  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
-  td.name{font-weight:600;word-break:break-all}
-  td.name small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
-  .pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
-  .pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.err{background:var(--err-soft);color:var(--err)}
-  .actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
-  td.nw{white-space:nowrap}
-  button,.btn{font:inherit;font-weight:600;font-size:12.5px;border-radius:8px;border:1px solid var(--line);background:#fff;padding:6px 11px;cursor:pointer;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;touch-action:manipulation;min-height:34px;box-sizing:border-box}
-  button:hover,.btn:hover{background:#f8fafc}
-  button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-  button.primary:hover{background:var(--brand-dark)}
-  button.danger{color:var(--err);border-color:#fecaca}
-  button.okb{color:var(--ok);border-color:#bbf7d0}
-  .empty{color:var(--muted);text-align:center;padding:26px 0}
-  .node{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
-  .node.down{background:var(--err-soft);border-color:#fecaca}
-  .nh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .dot{width:10px;height:10px;border-radius:50%;background:var(--ok)}
-  .down .dot{background:var(--err)}
-  .nh b{font-size:14px}.nh .port{color:var(--muted);font-family:var(--mono);font-size:12px}
-  .nh .pill{margin-left:auto}
-  .nm{display:flex;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font-size:12.5px;margin:8px 0}
-  .nm b{color:var(--ink)}
-  .log{max-height:260px;overflow:auto;font-family:var(--mono);font-size:12px}
-  .log div{padding:5px 0;border-bottom:1px dashed var(--line);word-break:break-word}
-  .log .t{color:var(--muted);margin-right:8px}
-  .log .ok{color:var(--ok)}.log .warn{color:var(--warn)}.log .error{color:var(--err)}
-  .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;place-items:center;padding:14px;z-index:100;backdrop-filter:blur(2px)}
-  .modal.open{display:grid}
-  .modal .card{width:min(560px,100%);max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-  .modal .actions{display:flex;flex-wrap:wrap;gap:8px}
-  @media(max-width:480px){
-    .modal .actions button,.modal .actions .btn{width:100%;text-align:center;margin:0!important}
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-  .link{font-family:var(--mono);font-size:12px;background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px;word-break:break-all;margin:10px 0}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;width:calc(100% - 32px);max-width:420px;box-sizing:border-box;text-align:center;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  .toast.err{background:var(--err)}
-  .load-bar{height:4px;border-radius:2px;background:#e2e8f0;overflow:hidden;margin:6px 0 10px}
-  .load-bar span{display:block;height:100%;background:var(--brand);transition:width .3s}
-  .strat-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;background:#e0e7ff;color:#3730a3;padding:3px 10px;border-radius:999px;font-weight:600;cursor:pointer}
-  .strat-badge:hover{background:#c7d2fe}
-  .bench-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0}
-  .bench-table{width:100%;min-width:420px;border-collapse:collapse;font-size:12.5px}
-  .bench-table th,.bench-table td{padding:8px;border:1px solid var(--line);text-align:center}
-  .bench-table th{background:#f8fafc}
-  .analytics-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px}
-  .analytics-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .charts-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr));gap:16px}
-  @media(max-width:600px){
-    .analytics-header{flex-direction:column;align-items:stretch}
-    .analytics-btns{flex-direction:column;width:100%}
-    .analytics-btns .btn{width:100%;text-align:center}
+  .logo {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+    box-shadow: 0 0 20px var(--brand-glow);
+    display: grid;
+    place-items: center;
+  }
+  .logo svg { width: 22px; height: 22px; stroke: #ffffff; }
+  .brand-text b {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: var(--brand);
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  .brand-text small {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.2s;
+  }
+  .theme-toggle:hover {
+    border-color: var(--brand);
+    box-shadow: 0 0 12px var(--brand-glow);
+  }
+
+  @media(max-width: 640px) {
+    header { padding: 10px 14px; }
+    .brand-text small { display: none; }
+  }
+
+  /* Main Container */
+  main {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+    display: grid;
+    gap: 20px;
+  }
+  @media(max-width: 640px) {
+    main { padding: 14px 12px 36px; gap: 14px; }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .card h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sub {
+    margin: 0 0 16px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Stats Grid */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+  @media(max-width: 1080px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media(max-width: 640px) {
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+  }
+  @media(max-width: 360px) {
+    .stats { grid-template-columns: 1fr; }
+  }
+
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .stat:hover {
+    transform: translateY(-2px);
+    border-color: var(--card-border-focus);
+  }
+  .stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .stat-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--brand-soft);
+    display: grid;
+    place-items: center;
+  }
+  .stat-icon svg { width: 15px; height: 15px; stroke: var(--brand); }
+  .stat b {
+    display: block;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  @media(max-width: 640px) {
+    .stat { padding: 12px 14px; }
+    .stat b { font-size: 20px; }
+  }
+
+  /* 2-Column Dashboard Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 1.85fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media(max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* Upload Dropzone */
+  .drop {
+    border: 2px dashed rgba(99, 102, 241, 0.4);
+    background: var(--brand-soft);
+    border-radius: 14px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
+  }
+  .drop:hover, .drop.over {
+    border-color: var(--cyan);
+    background: rgba(6, 182, 212, 0.12);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.2);
+    transform: scale(0.995);
+  }
+  .drop-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand), var(--cyan));
+    display: inline-grid;
+    place-items: center;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 15px var(--brand-glow);
+  }
+  .drop-icon-wrap svg { width: 24px; height: 24px; stroke: #fff; }
+  .drop b {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .drop span {
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+
+  /* Progress Bar */
+  .bar {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+    margin-top: 14px;
+    display: none;
+  }
+  .bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--brand), var(--cyan));
+    transition: width 0.2s ease;
+  }
+
+  /* Responsive Table */
+  .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--input-bg);
+  }
+  table {
+    width: 100%;
+    min-width: 580px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  th {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr {
+    transition: background 0.15s;
+  }
+  tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+  }
+  td.name {
+    font-weight: 600;
+    word-break: break-all;
+  }
+  td.name small {
+    display: block;
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 11.5px;
+    margin-top: 2px;
+  }
+  td.nw { white-space: nowrap; font-family: var(--mono); font-size: 12px; }
+
+  /* Pills & Badges */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.ok {
+    background: var(--ok-soft);
+    color: var(--ok);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+  .pill.warn {
+    background: var(--warn-soft);
+    color: var(--warn);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+  .pill.err {
+    background: var(--err-soft);
+    color: var(--err);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+  }
+  .pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Actions & Buttons */
+  .actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  button, .btn {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    padding: 7px 12px;
+    cursor: pointer;
+    color: var(--ink);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+    touch-action: manipulation;
+    min-height: 34px;
+    box-sizing: border-box;
+  }
+  button:hover, .btn:hover {
+    border-color: var(--brand);
+    background: rgba(99, 102, 241, 0.1);
+  }
+  button.primary {
+    background: linear-gradient(135deg, var(--brand), #4f46e5);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 2px 10px var(--brand-glow);
+  }
+  button.primary:hover {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    box-shadow: 0 4px 15px var(--brand-glow);
+  }
+  button.danger {
+    color: var(--err);
+    background: var(--err-soft);
+    border-color: rgba(244, 63, 94, 0.25);
+  }
+  button.danger:hover {
+    background: rgba(244, 63, 94, 0.25);
+    border-color: var(--err);
+  }
+  button.okb {
+    color: var(--ok);
+    background: var(--ok-soft);
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+  button.okb:hover {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: var(--ok);
+  }
+  .empty {
+    color: var(--muted);
+    text-align: center;
+    padding: 36px 14px;
+    font-size: 13.5px;
+  }
+
+  /* Storage Node Blades */
+  .node {
+    border: 1px solid var(--card-border);
+    background: var(--input-bg);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+  }
+  .node:hover {
+    border-color: var(--card-border-focus);
+  }
+  .node.down {
+    background: var(--err-soft);
+    border-color: rgba(244, 63, 94, 0.3);
+  }
+  .nh {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pulse-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 10px var(--ok);
+    position: relative;
+  }
+  .down .pulse-dot {
+    background: var(--err);
+    box-shadow: 0 0 10px var(--err);
+  }
+  .nh b {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .nh .port {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .nh .pill { margin-left: auto; }
+  .nm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    color: var(--muted);
+    font-size: 12.5px;
+    margin: 10px 0 6px;
+  }
+  .nm b { color: var(--ink); font-weight: 600; }
+  .load-bar {
+    height: 5px;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+    margin: 8px 0 12px;
+  }
+  .load-bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--ok), var(--brand), var(--cyan));
+    transition: width 0.3s ease;
+  }
+
+  /* Strategy Badge */
+  .strat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    background: var(--brand-soft);
+    color: var(--brand);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .strat-badge:hover {
+    background: rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 12px var(--brand-glow);
+  }
+
+  /* Activity Log Console */
+  .log {
+    max-height: 280px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+  .log div {
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+    word-break: break-word;
+    display: flex;
+    gap: 8px;
+  }
+  .log div:last-child { border-bottom: none; }
+  .log .t { color: var(--subtle); }
+  .log .ok { color: var(--ok); }
+  .log .warn { color: var(--warn); }
+  .log .error { color: var(--err); }
+
+  /* Benchmarks & Modals */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: none;
+    place-items: center;
+    padding: 16px;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .modal.open { display: grid; }
+  .modal .card {
+    width: min(600px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--card-border-focus);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  }
+  .modal .actions {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .link {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    word-break: break-all;
+    margin: 12px 0;
+  }
+  .bench-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 12px 0;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
+  .bench-table {
+    width: 100%;
+    min-width: 460px;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .bench-table th, .bench-table td {
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    text-align: center;
+  }
+  .bench-table th { background: rgba(255, 255, 255, 0.03); font-weight: 700; }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(14px);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    box-sizing: border-box;
+    text-align: center;
+    z-index: 200;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.err {
+    background: rgba(244, 63, 94, 0.95);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Analytics Grid */
+  .analytics-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .analytics-btns {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 16px;
+  }
+  .chart-box {
+    background: var(--input-bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .chart-title {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 10px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chart-container {
+    height: 200px;
+    position: relative;
+  }
+  @media(max-width: 600px) {
+    .analytics-header { flex-direction: column; align-items: stretch; }
+    .analytics-btns { flex-direction: column; width: 100%; }
+    .analytics-btns .btn { width: 100%; text-align: center; }
   }
 </style>
 </head>
 <body>
+
 <header>
-  <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 0 0 4.5 12.5 3.5 3.5 0 0 0 6 19z"/></svg></div>
-  <div><b>CloudBox</b><small>Mini cloud storage: chunked, encrypted, replicated on 3 storage nodes</small></div>
+  <div class="brand-group">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 0 0 4.5 12.5 3.5 3.5 0 0 0 6 19z"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <b>CloudBox <span class="brand-badge">2.0 Distributed</span></b>
+      <small>AES Encrypted • Dynamic Placement • Automated Self-Healing</small>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="theme-toggle" id="themeBtn" title="Toggle Dark/Light Mode">
+      <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+    </button>
+  </div>
 </header>
 
 <main>
+  <!-- Cluster Overview Stats -->
   <div class="stats">
-    <div class="stat"><small>Files</small><b id="sFiles">-</b></div>
-    <div class="stat"><small>Stored</small><b id="sBytes">-</b></div>
-    <div class="stat"><small>Storage nodes up</small><b id="sNodes">-</b></div>
-    <div class="stat"><small>Replication Overhead</small><b id="sOverhead">2.00x</b></div>
-    <div class="stat"><small>Files at risk</small><b id="sRisk">-</b></div>
+    <div class="stat">
+      <div class="stat-top">
+        <span class="stat-label">Files Stored</span>
+        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+      </div>
+      <b id="sFiles">-</b>
+    </div>
+    <div class="stat">
+      <div class="stat-top">
+        <span class="stat-label">Cluster Usage</span>
+        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg></div>
+      </div>
+      <b id="sBytes">-</b>
+    </div>
+    <div class="stat">
+      <div class="stat-top">
+        <span class="stat-label">Active Nodes</span>
+        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></div>
+      </div>
+      <b id="sNodes">-</b>
+    </div>
+    <div class="stat">
+      <div class="stat-top">
+        <span class="stat-label">Replication Factor</span>
+        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></div>
+      </div>
+      <b id="sOverhead">2.00x</b>
+    </div>
+    <div class="stat">
+      <div class="stat-top">
+        <span class="stat-label">Files at Risk</span>
+        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+      </div>
+      <b id="sRisk">-</b>
+    </div>
   </div>
 
   <div class="layout">
-    <div style="display:grid;gap:18px">
+    <!-- Left Column: File Explorer & Activity Log -->
+    <div style="display:grid;gap:20px">
       <section class="card">
-        <h2>My files</h2>
-        <p class="sub">Files are split into <span id="chunkKb">256</span> KB chunks, encrypted, and every chunk is kept on <span id="rep">2</span> different nodes.</p>
+        <div class="card-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            Distributed File Vault
+          </h2>
+        </div>
+        <p class="sub">Files are automatically partitioned into <span id="chunkKb" style="font-weight:600;color:var(--brand)">256</span> KB chunks, encrypted with AES-128, and multi-replicated across <span id="rep" style="font-weight:600;color:var(--brand)">2</span> isolated nodes.</p>
+        
         <div class="drop" id="drop">
-          <b>Tap to select or drop a file to upload</b>
-          <span>Any file up to 50 MB</span>
+          <div class="drop-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <b>Tap or drop files to upload</b>
+          <span>Transactional upload with automatic orphan cleanup • Up to 50 MB</span>
           <input type="file" id="fileInput" hidden>
         </div>
         <div class="bar" id="bar"><span id="barFill"></span></div>
+
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Name</th><th>Size</th><th>Chunks</th><th>Copies</th><th>Placement</th><th style="text-align:right">Actions</th></tr></thead>
-            <tbody id="files"><tr><td colspan="6" class="empty">No files yet. Upload one to start.</td></tr></tbody>
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Size</th>
+                <th>Chunks</th>
+                <th>Health Status</th>
+                <th>Placement</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="files">
+              <tr><td colspan="6" class="empty">No files in cluster. Upload one above to begin.</td></tr>
+            </tbody>
           </table>
         </div>
       </section>
 
+      <!-- Activity Console -->
       <section class="card">
-        <h2>Activity log</h2>
-        <p class="sub">Uploads, downloads, node crashes, repairs and rejected share links, newest first.</p>
+        <div class="card-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+            Cluster Activity Console
+          </h2>
+        </div>
+        <p class="sub">Real-time audit log of parallel uploads, downloads, self-healing events, and crash recoveries.</p>
         <div class="log" id="log"></div>
       </section>
     </div>
 
-    <div style="display:grid;gap:18px">
+    <!-- Right Column: Storage Nodes & Interactive Controls -->
+    <div style="display:grid;gap:20px">
       <section class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <h2>Storage nodes</h2>
-          <span class="strat-badge" id="stratBadge" onclick="toggleStrategy()" title="Click to toggle strategy">Strategy: <b id="sStrat">load-aware</b></span>
+        <div class="card-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+            Storage Node Blades
+          </h2>
+          <span class="strat-badge" id="stratBadge" onclick="toggleStrategy()" title="Click to toggle load balancing strategy">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <b id="sStrat">load-aware</b>
+          </span>
         </div>
-        <p class="sub">Stop a node to simulate a crash. Chunks direct to least loaded nodes.</p>
+        <p class="sub">Simulate physical disk failures or network outages. Self-healing loop restores healthy replicas automatically.</p>
+        
         <div id="nodes"></div>
-        <button class="primary" id="repairBtn" style="width:100%;margin-top:4px">Repair: restore 2 copies</button>
-        <button class="btn" id="benchBtn" onclick="openBenchmark()" style="width:100%;margin-top:6px">Compare Load Balancing (Benchmark)</button>
+
+        <div style="display:grid;gap:8px;margin-top:14px">
+          <button class="primary" id="repairBtn" style="width:100%">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            Trigger Manual Cluster Repair
+          </button>
+          <button class="btn" id="benchBtn" onclick="openBenchmark()" style="width:100%">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            Load Balancing Skew Benchmark
+          </button>
+        </div>
       </section>
+
+      <!-- Testing Demo Guide Card -->
       <section class="card">
-        <h2>How to test it</h2>
-        <ol class="how" style="padding-left:18px;margin:0;line-height:1.6">
-          <li>Upload a file (a photo or PDF).</li>
-          <li>Stop <b>node-1</b>. The file now shows 1 copy, but Download still works.</li>
-          <li>Press <b>Repair</b>. Copies go back to 2 on the running nodes.</li>
-          <li>Stop a second node. Repaired files still download.</li>
-          <li>Create a <b>Share</b> link, open it, then change one letter: 403.</li>
-          <li>Click <b>Compare Load Balancing</b> to view skew benchmarks.</li>
+        <div class="card-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+            Interactive Presentation Demo
+          </h2>
+        </div>
+        <ol style="padding-left:18px;margin:0;line-height:1.7;color:var(--muted);font-size:12.5px">
+          <li><b>Upload</b> a photo, PDF, or video document.</li>
+          <li>Click <b>Stop</b> on <b>node-1</b> to simulate an unannounced hardware crash.</li>
+          <li>Notice the file remains 100% downloadable with zero downtime.</li>
+          <li>Watch the background monitor self-heal, or click <b>Manual Repair</b>.</li>
+          <li>Generate a cryptographically <b>signed share link</b> with expiration.</li>
+          <li>Run the <b>Parallel Transfer Speedup Benchmark</b> below!</li>
         </ol>
       </section>
     </div>
   </div>
 
-  <section class="card" style="margin-top:2px">
+  <!-- Performance & Analytics Dashboard -->
+  <section class="card">
     <div class="analytics-header">
       <div>
-        <h2 style="font-size:16px">Performance & Storage Analytics</h2>
-        <p class="sub" style="margin:0">Real-time throughput, per-node storage consumption, and replication overhead (Phase 4)</p>
+        <h2 style="font-size:16px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
+          Telemetry & Storage Analytics
+        </h2>
+        <p class="sub" style="margin:0">Persistent SQLite metrics tracking real-time cluster throughput and disk consumption.</p>
       </div>
       <div class="analytics-btns">
-        <button class="btn" onclick="openTransferBenchmark()" style="font-size:12px">⚡ Transfer Benchmark (Parallel vs Sequential)</button>
-        <a class="btn" href="/api/metrics/export" target="_blank" style="font-size:12px">📥 Export Metrics (CSV)</a>
+        <button class="btn" onclick="openTransferBenchmark()">
+          ⚡ Parallel Transfer Benchmark
+        </button>
+        <a class="btn" href="/api/metrics/export" target="_blank">
+          📥 Export CSV Metrics
+        </a>
       </div>
     </div>
+    
     <div class="charts-grid">
-      <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px">
-        <div style="font-weight:600;font-size:13px;margin-bottom:8px">Throughput Over Time (MB/s)</div>
-        <div style="height:190px"><canvas id="throughputChart"></canvas></div>
+      <div class="chart-box">
+        <div class="chart-title">
+          <span class="pill-dot" style="background:#6366f1"></span>
+          Cluster Throughput Over Time (MB/s)
+        </div>
+        <div class="chart-container"><canvas id="throughputChart"></canvas></div>
       </div>
-      <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px">
-        <div style="font-weight:600;font-size:13px;margin-bottom:8px">Storage Consumption per Node (KB)</div>
-        <div style="height:190px"><canvas id="storageChart"></canvas></div>
+      <div class="chart-box">
+        <div class="chart-title">
+          <span class="pill-dot" style="background:#06b6d4"></span>
+          Disk Storage Distribution per Node (KB)
+        </div>
+        <div class="chart-container"><canvas id="storageChart"></canvas></div>
       </div>
     </div>
   </section>
 </main>
 
+<!-- Transfer Benchmark Modal -->
 <div class="modal" id="transferBenchModal">
-  <div class="card" style="width:min(580px,100%)">
-    <h2>Transfer Speed Benchmark</h2>
-    <p class="sub">Sequential vs. Concurrent (Parallel) chunk upload & download benchmark (Phase 5).</p>
+  <div class="card">
+    <h2>⚡ Transfer Concurrency Benchmark</h2>
+    <p class="sub">Compares sequential transfers vs. ThreadPoolExecutor multi-worker parallel chunk streaming.</p>
     <div id="transferBenchBody">Loading benchmark...</div>
-    <div class="actions" style="margin-top:14px">
+    <div class="actions">
       <button class="primary" onclick="runTransferBenchmark()">Rerun Benchmark</button>
       <button onclick="$('transferBenchModal').classList.remove('open')">Close</button>
     </div>
   </div>
 </div>
 
+<!-- Load Balancing Benchmark Modal -->
 <div class="modal" id="benchModal">
-  <div class="card" style="width:min(560px,100%)">
-    <h2>Placement Strategy Benchmark</h2>
-    <p class="sub">Simulated chunk placement under a skewed workload (Node 1 starts with 10 existing chunks).</p>
+  <div class="card">
+    <h2>⚖️ Placement Strategy Benchmark</h2>
+    <p class="sub">Simulates 30 chunks under a pre-skewed cluster to evaluate load-aware variance reduction.</p>
     <div id="benchBody">Loading benchmark...</div>
-    <div class="actions" style="margin-top:14px">
+    <div class="actions">
       <button class="primary" onclick="runBenchmark()">Rerun Simulation</button>
       <button onclick="$('benchModal').classList.remove('open')">Close</button>
     </div>
   </div>
 </div>
 
+<!-- Share Link Modal -->
 <div class="modal" id="modal">
   <div class="card">
-    <h2>Share link</h2>
-    <p class="sub">Anyone with this link can download the file until it expires. Changing any part of it makes it invalid.</p>
+    <h2>🔗 Signed Share Link</h2>
+    <p class="sub">Secured via HMAC-SHA256 signature and time-based expiration. Any URL tampering results in 403 Forbidden.</p>
     <div class="link" id="shareLink"></div>
-    <div class="actions" style="justify-content:flex-start">
-      <button class="primary" id="copyBtn">Copy link</button>
-      <a class="btn" id="openLink" target="_blank">Open</a>
-      <a class="btn" id="badLink" target="_blank" style="color:var(--err);border-color:#fecaca">Open tampered copy</a>
+    <div class="actions">
+      <button class="primary" id="copyBtn">Copy Link</button>
+      <a class="btn" id="openLink" target="_blank">Open Link</a>
+      <a class="btn" id="badLink" target="_blank" style="color:var(--err);border-color:rgba(244,63,94,0.3)">Test Tampered URL (403)</a>
       <button id="closeBtn" style="margin-left:auto">Close</button>
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function toast(m, err){ const t=$('toast'); t.textContent=m; t.className='toast show'+(err?' err':''); clearTimeout(t._h); t._h=setTimeout(()=>t.className='toast',2800); }
+
+/* Theme Toggle */
+const root = document.documentElement;
+const themeBtn = $('themeBtn');
+const savedTheme = localStorage.getItem('cloudbox_theme') || 'dark';
+root.setAttribute('data-theme', savedTheme);
+
+themeBtn.onclick = () => {
+  const current = root.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('cloudbox_theme', next);
+  updateChartThemes();
+};
+
+function toast(m, err){
+  const t = $('toast');
+  t.textContent = m;
+  t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.className = 'toast', 2800);
+}
+
 async function api(method, path, body){
-  const res = await fetch(path, {method, headers: body ? {'Content-Type':'application/json'} : {}, body: body ? JSON.stringify(body) : undefined});
-  let data = {}; try { data = await res.json(); } catch(e) {}
+  const res = await fetch(path, {
+    method,
+    headers: body ? {'Content-Type': 'application/json'} : {},
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let data = {};
+  try { data = await res.json(); } catch(e) {}
   return {ok: res.ok, data};
 }
 
-/* ---------- upload ---------- */
+/* ---------- Upload Handling ---------- */
 const drop = $('drop');
 drop.onclick = () => $('fileInput').click();
 $('fileInput').onchange = e => { if (e.target.files[0]) upload(e.target.files[0]); e.target.value = ''; };
@@ -258,118 +1040,195 @@ $('fileInput').onchange = e => { if (e.target.files[0]) upload(e.target.files[0]
 drop.addEventListener('drop', e => { if (e.dataTransfer.files[0]) upload(e.dataTransfer.files[0]); });
 
 function upload(file){
-  if (file.size > 50 * 1024 * 1024) return toast('File is larger than 50 MB', true);
-  const fd = new FormData(); fd.append('file', file);
+  if (file.size > 50 * 1024 * 1024) return toast('File is larger than 50 MB limit', true);
+  const fd = new FormData();
+  fd.append('file', file);
   const xhr = new XMLHttpRequest();
-  $('bar').style.display = 'block'; $('barFill').style.width = '0';
-  xhr.upload.onprogress = e => { if (e.lengthComputable) $('barFill').style.width = (e.loaded / e.total * 100) + '%'; };
+  $('bar').style.display = 'block';
+  $('barFill').style.width = '0%';
+
+  xhr.upload.onprogress = e => {
+    if (e.lengthComputable) {
+      $('barFill').style.width = (e.loaded / e.total * 100) + '%';
+    }
+  };
+
   xhr.onload = () => {
     setTimeout(() => $('bar').style.display = 'none', 600);
-    let d = {}; try { d = JSON.parse(xhr.responseText); } catch(e) {}
+    let d = {};
+    try { d = JSON.parse(xhr.responseText); } catch(e) {}
     if (xhr.status !== 200) return toast(d.error || 'Upload failed', true);
     toast(`Uploaded ${d.file.name}: ${d.file.chunks} chunk(s) in ${Math.round(d.ms)} ms`);
     refresh();
   };
+
   xhr.onerror = () => toast('Upload failed: server not reachable', true);
-  xhr.open('POST', '/api/files'); xhr.send(fd);
+  xhr.open('POST', '/api/files');
+  xhr.send(fd);
 }
 
-/* ---------- files ---------- */
+/* ---------- File Management ---------- */
 function copiesPill(n, rep, status){
-  if (status === 'healthy' || (!status && n >= rep)) return `<span class="pill ok">healthy (${n} copies)</span>`;
-  if (status === 'degraded') return `<span class="pill warn">degraded (${n} copies)</span>`;
-  if (status === 'at_risk' || n === 1) return `<span class="pill err">at risk (${n} copy)</span>`;
-  if (n === 0) return `<span class="pill err">unavailable</span>`;
-  return `<span class="pill warn">${n} copies</span>`;
+  if (status === 'healthy' || (!status && n >= rep)) {
+    return `<span class="pill ok"><span class="pill-dot"></span>healthy (${n} copies)</span>`;
+  }
+  if (status === 'degraded') {
+    return `<span class="pill warn"><span class="pill-dot"></span>degraded (${n} copies)</span>`;
+  }
+  if (status === 'at_risk' || n === 1) {
+    return `<span class="pill err"><span class="pill-dot"></span>at risk (${n} copy)</span>`;
+  }
+  if (n === 0) {
+    return `<span class="pill err"><span class="pill-dot"></span>unavailable</span>`;
+  }
+  return `<span class="pill warn"><span class="pill-dot"></span>${n} copies</span>`;
 }
+
 async function loadFiles(rep){
   const {data} = await api('GET', '/api/files');
   $('files').innerHTML = data.length ? data.map(f => `<tr>
-    <td class="name">${esc(f.name)}<small>${esc(f.uploaded)} · on ${esc(f.nodes.join(', '))}</small></td>
-    <td class="nw">${esc(f.size_h)}</td><td>${f.chunks}</td><td>${copiesPill(f.copies, rep, f.health_status)}</td>
-    <td><span class="pill" style="background:#f1f5f9;color:#475569">${esc(f.placement || 'load-aware')}</span></td>
-    <td><div class="actions">
-      <a class="btn" href="/api/files/${f.id}/download" onclick="return checkDownload(event, '${f.id}')">Download</a>
-      <button onclick="share('${f.id}')">Share</button>
-      <button class="danger" onclick="del('${f.id}', '${esc(f.name).replace(/'/g, "\\'")}')">Delete</button>
-    </div></td></tr>`).join('')
-    : '<tr><td colspan="6" class="empty">No files yet. Upload one to start.</td></tr>';
+    <td class="name">
+      <div style="display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+        <span>${esc(f.name)}</span>
+      </div>
+      <small>${esc(f.uploaded)} · nodes: ${esc(f.nodes.join(', '))}</small>
+    </td>
+    <td class="nw">${esc(f.size_h)}</td>
+    <td><span class="pill" style="background:var(--input-bg);color:var(--ink)">${f.chunks} chunks</span></td>
+    <td>${copiesPill(f.copies, rep, f.health_status)}</td>
+    <td><span class="pill" style="background:rgba(99,102,241,0.1);color:var(--brand);font-weight:600">${esc(f.placement || 'load-aware')}</span></td>
+    <td>
+      <div class="actions">
+        <a class="btn" href="/api/files/${f.id}/download" onclick="return checkDownload(event, '${f.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download
+        </a>
+        <button onclick="share('${f.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          Share
+        </button>
+        <button class="danger" onclick="del('${f.id}', '${esc(f.name).replace(/'/g, "\\'")}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          Delete
+        </button>
+      </div>
+    </td>
+  </tr>`).join('')
+  : '<tr><td colspan="6" class="empty">No files stored in cluster. Upload a document to start.</td></tr>';
 }
+
 async function checkDownload(e, id){
   e.preventDefault();
   const res = await fetch(`/api/files/${id}/download`);
-  if (!res.ok) { let d = {}; try { d = await res.json(); } catch(x) {} toast(d.error || 'Download failed', true); refresh(); return false; }
+  if (!res.ok) {
+    let d = {};
+    try { d = await res.json(); } catch(x) {}
+    toast(d.error || 'Download failed', true);
+    refresh();
+    return false;
+  }
   const blob = await res.blob();
   const name = decodeURIComponent((res.headers.get('Content-Disposition') || '').split("''")[1] || 'download');
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  toast(`Downloaded ${name}`); refresh(); return false;
+  toast(`Downloaded ${name} successfully`);
+  refresh();
+  return false;
 }
+
 async function del(id, name){
   const r = await api('DELETE', `/api/files/${id}`);
   if (!r.ok) return toast(r.data.error || 'Delete failed', true);
-  toast(`Deleted ${name}`); refresh();
+  toast(`Deleted ${name}`);
+  refresh();
 }
+
 async function share(id){
   const r = await api('POST', `/api/files/${id}/share`, {minutes: 10});
-  if (!r.ok) return toast(r.data.error || 'Failed', true);
+  if (!r.ok) return toast(r.data.error || 'Failed to generate share link', true);
   const full = location.origin + r.data.link;
   const bad = full.replace(/sig=([0-9a-f])/, (m, c) => 'sig=' + (c === 'a' ? 'b' : 'a'));
-  $('shareLink').textContent = full; $('openLink').href = full; $('badLink').href = bad;
-  $('modal').classList.add('open'); refresh();
+  $('shareLink').textContent = full;
+  $('openLink').href = full;
+  $('badLink').href = bad;
+  $('modal').classList.add('open');
+  refresh();
 }
-$('copyBtn').onclick = async () => { try { await navigator.clipboard.writeText($('shareLink').textContent); toast('Link copied'); } catch(e) { toast('Select the link and copy it', true); } };
+
+$('copyBtn').onclick = async () => {
+  try {
+    await navigator.clipboard.writeText($('shareLink').textContent);
+    toast('Share link copied to clipboard');
+  } catch(e) {
+    toast('Select and copy the URL manually', true);
+  }
+};
 $('closeBtn').onclick = () => $('modal').classList.remove('open');
 $('modal').onclick = e => { if (e.target.id === 'modal') $('modal').classList.remove('open'); };
 $('benchModal').onclick = e => { if (e.target.id === 'benchModal') $('benchModal').classList.remove('open'); };
 $('transferBenchModal').onclick = e => { if (e.target.id === 'transferBenchModal') $('transferBenchModal').classList.remove('open'); };
 
-/* ---------- nodes & load balancing ---------- */
+/* ---------- Storage Node Controls ---------- */
 async function loadNodes(){
   const {data} = await api('GET', '/api/nodes');
   $('nodes').innerHTML = data.map(n => {
     const scorePct = (n.up && n.load_score !== null) ? Math.round(n.load_score * 100) : null;
     return `<div class="node ${n.up ? '' : 'down'}">
-      <div class="nh"><span class="dot"></span><b>${esc(n.name)}</b><span class="port">:${n.port}</span>
-        <span class="pill ${n.up ? 'ok' : 'err'}">${n.up ? 'running' : 'stopped'}</span></div>
+      <div class="nh">
+        <span class="pulse-dot"></span>
+        <b>${esc(n.name)}</b>
+        <span class="port">:${n.port}</span>
+        <span class="pill ${n.up ? 'ok' : 'err'}">${n.up ? 'ONLINE' : 'OFFLINE'}</span>
+      </div>
       <div class="nm">
         <span><b>${n.up ? n.chunks : '-'}</b> chunks</span>
-        <span><b>${n.up ? (n.bytes / 1024).toFixed(0) + ' KB' : '-'}</b> used</span>
-        <span>Load: <b>${scorePct !== null ? scorePct + '%' : '-'}</b></span>
+        <span><b>${n.up ? (n.bytes / 1024).toFixed(0) + ' KB' : '-'}</b> disk used</span>
+        <span>Load Score: <b>${scorePct !== null ? scorePct + '%' : '-'}</b></span>
       </div>
       <div class="load-bar"><span style="width:${scorePct || 0}%"></span></div>
-      ${n.up ? `<button class="danger" onclick="nodeAct('${n.name}','stop')">Stop (crash)</button>`
-             : `<button class="okb" onclick="nodeAct('${n.name}','start')">Start</button>`}</div>`;
+      ${n.up ? `<button class="danger" onclick="nodeAct('${n.name}','stop')" style="width:100%">Simulate Crash (Stop Node)</button>`
+             : `<button class="okb" onclick="nodeAct('${n.name}','start')" style="width:100%">Restart Storage Node</button>`}
+    </div>`;
   }).join('');
 }
+
 async function nodeAct(name, action){
   const r = await api('POST', `/api/nodes/${name}/${action}`);
-  if (!r.ok) return toast(r.data.error || 'Failed', true);
-  toast(action === 'stop' ? `${name} stopped` : `${name} started`); refresh();
+  if (!r.ok) return toast(r.data.error || 'Action failed', true);
+  toast(action === 'stop' ? `${name} stopped (simulated crash)` : `${name} back online`);
+  refresh();
 }
+
 async function toggleStrategy(){
   const current = $('sStrat').textContent;
   const next = current === 'load-aware' ? 'round-robin' : 'load-aware';
   const r = await api('POST', '/api/strategy', {strategy: next});
   if (r.ok) {
     $('sStrat').textContent = r.data.strategy;
-    toast(`Placement strategy: ${r.data.strategy}`);
+    toast(`Placement strategy switched to: ${r.data.strategy}`);
   }
 }
+
+/* ---------- Benchmarks ---------- */
 async function openBenchmark(){
   $('benchModal').classList.add('open');
   await runBenchmark();
 }
+
 async function runBenchmark(){
-  $('benchBody').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Simulating chunk placement...</div>';
+  $('benchBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)">Simulating distributed chunk placement under skewed workload...</div>';
   const {ok, data} = await api('GET', '/api/benchmark/load-balancing?chunks=30');
   if (!ok) {
-    $('benchBody').innerHTML = '<div style="color:var(--err)">Failed to load benchmark</div>';
+    $('benchBody').innerHTML = '<div style="color:var(--err)">Failed to execute simulation</div>';
     return;
   }
   const nodes = Object.keys(data.round_robin.counts);
   $('benchBody').innerHTML = `
-    <div style="font-size:12.5px;margin-bottom:8px">Added <b>${data.chunks_added} chunks</b> across nodes with initial skew (Node 1 started with ${data.initial_skew['node-1'] || 0} chunks):</div>
+    <div style="font-size:12.5px;margin-bottom:8px">Simulated <b>${data.chunks_added} chunks</b> placement (Node-1 started with ${data.initial_skew['node-1'] || 0} existing chunks):</div>
     <div class="bench-table-wrap">
       <table class="bench-table">
         <thead>
@@ -379,54 +1238,56 @@ async function runBenchmark(){
           <tr>
             <td><b>Round-Robin</b></td>
             ${nodes.map(n => `<td>${data.round_robin.counts[n]}</td>`).join('')}
-            <td style="color:var(--err);font-weight:600">${data.round_robin.variance}</td>
+            <td style="color:var(--err);font-weight:700">${data.round_robin.variance}</td>
             <td>${data.round_robin.std_dev}</td>
           </tr>
-          <tr style="background:#f0fdf4">
+          <tr style="background:rgba(16,185,129,0.1)">
             <td><b style="color:var(--ok)">Load-Aware</b></td>
             ${nodes.map(n => `<td><b>${data.load_aware.counts[n]}</b></td>`).join('')}
-            <td style="color:var(--ok);font-weight:600">${data.load_aware.variance}</td>
+            <td style="color:var(--ok);font-weight:700">${data.load_aware.variance}</td>
             <td><b>${data.load_aware.std_dev}</b></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div style="font-size:12px;color:var(--muted);background:#f8fafc;padding:10px;border-radius:8px">
-      💡 <b>Intelligent balancing result:</b> Load-Aware placement achieved a lower variance (<b>${data.load_aware.variance}</b> vs <b>${data.round_robin.variance}</b>), successfully directing new chunks toward less loaded nodes to balance data skew.
+    <div style="font-size:12px;color:var(--muted);background:var(--input-bg);padding:12px;border-radius:10px;border:1px solid var(--line);line-height:1.5">
+      💡 <b>Intelligent Balancing Proof:</b> Load-Aware placement achieved significantly lower variance (<b>${data.load_aware.variance}</b> vs <b>${data.round_robin.variance}</b>), steering incoming chunks away from heavily loaded drives to balance cluster capacity.
     </div>
   `;
 }
+
 async function openTransferBenchmark(){
   $('transferBenchModal').classList.add('open');
   await runTransferBenchmark();
 }
+
 async function runTransferBenchmark(){
-  $('transferBenchBody').innerHTML = '<div style="text-align:center;padding:22px;color:var(--muted)">Benchmarking sequential vs. parallel transfers (4 chunks x 256KB)...</div>';
+  $('transferBenchBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)">Benchmarking sequential vs. parallel transfers (4 chunks x 256KB)...</div>';
   const {ok, data} = await api('GET', '/api/benchmark/transfers');
   if (!ok) {
-    $('transferBenchBody').innerHTML = '<div style="color:var(--err)">Benchmark failed. Ensure storage nodes are up.</div>';
+    $('transferBenchBody').innerHTML = '<div style="color:var(--err)">Benchmark failed. Ensure storage nodes are active.</div>';
     return;
   }
   $('transferBenchBody').innerHTML = `
     <div class="bench-table-wrap">
       <table class="bench-table">
         <thead>
-          <tr><th>Transfer Mode</th><th>Upload Time</th><th>Download Time</th><th>Data Integrity</th></tr>
+          <tr><th>Transfer Mode</th><th>Upload Latency</th><th>Download Latency</th><th>Integrity Check</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><b>Sequential</b></td>
             <td>${data.sequential_upload_ms} ms</td>
             <td>${data.sequential_download_ms} ms</td>
-            <td><span class="pill ok">Verified</span></td>
+            <td><span class="pill ok">Bit-for-Bit Verified</span></td>
           </tr>
-          <tr style="background:#f0fdf4">
-            <td><b style="color:var(--ok)">Parallel (4 workers)</b></td>
+          <tr style="background:rgba(16,185,129,0.1)">
+            <td><b style="color:var(--ok)">Parallel (4 Workers)</b></td>
             <td><b>${data.parallel_upload_ms} ms</b></td>
             <td><b>${data.parallel_download_ms} ms</b></td>
-            <td><span class="pill ok">Verified</span></td>
+            <td><span class="pill ok">Bit-for-Bit Verified</span></td>
           </tr>
-          <tr style="background:#eff6ff;font-weight:600">
+          <tr style="background:var(--brand-soft);font-weight:700">
             <td>Speedup Factor</td>
             <td style="color:var(--brand)">${data.upload_speedup}x faster</td>
             <td style="color:var(--brand)">${data.download_speedup}x faster</td>
@@ -435,44 +1296,96 @@ async function runTransferBenchmark(){
         </tbody>
       </table>
     </div>
-    <div style="font-size:12px;color:var(--muted);background:#f8fafc;padding:10px;border-radius:8px">
-      ⚡ <b>Parallel Concurrency Result:</b> ThreadPoolExecutor concurrent workers reduced transfer latency while preserving sequential chunk ordering and bit-for-bit file verification.
+    <div style="font-size:12px;color:var(--muted);background:var(--input-bg);padding:12px;border-radius:10px;border:1px solid var(--line);line-height:1.5">
+      ⚡ <b>Concurrency Verification:</b> ThreadPoolExecutor concurrent worker pool achieves higher streaming throughput while preserving exact chunk sequence and bit-level file integrity.
     </div>
   `;
 }
 
 $('repairBtn').onclick = async () => {
   const r = await api('POST', '/api/repair');
-  if (!r.ok) return toast('Repair failed', true);
-  toast(r.data.copied ? `Repair made ${r.data.copied} new chunk copies` : 'Nothing to repair'); refresh();
+  if (!r.ok) return toast('Cluster repair failed', true);
+  toast(r.data.copied ? `Self-healing created ${r.data.copied} verified chunk replica(s)` : 'Cluster already fully healthy');
+  refresh();
 };
 
-/* ---------- metrics & charts ---------- */
+/* ---------- Chart.js Telemetry ---------- */
 let throughputChart, storageChart;
+
+function getChartThemeColors() {
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  return {
+    grid: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)',
+    text: isDark ? '#94a3b8' : '#64748b',
+    tooltipBg: isDark ? '#0f172a' : '#ffffff',
+    tooltipText: isDark ? '#ffffff' : '#0f172a',
+    tooltipBorder: isDark ? 'rgba(99, 102, 241, 0.4)' : '#e2e8f0'
+  };
+}
+
 function initCharts(){
   const ctxT = document.getElementById('throughputChart');
   const ctxS = document.getElementById('storageChart');
   if (!ctxT || !ctxS || typeof Chart === 'undefined') return;
+  const c = getChartThemeColors();
 
   throughputChart = new Chart(ctxT, {
     type: 'line',
     data: {
       labels: [],
       datasets: [
-        { label: 'Upload MB/s', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', tension: 0.3, fill: true },
-        { label: 'Download MB/s', data: [], borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.1)', tension: 0.3, fill: true }
+        { label: 'Upload MB/s', data: [], borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.15)', tension: 0.35, fill: true, pointRadius: 3 },
+        { label: 'Download MB/s', data: [], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.12)', tension: 0.35, fill: true, pointRadius: 3 }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } } }, scales: { y: { beginAtZero: true } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 10, color: c.text, font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } } },
+        tooltip: { backgroundColor: c.tooltipBg, titleColor: c.tooltipText, bodyColor: c.tooltipText, borderColor: c.tooltipBorder, borderWidth: 1 }
+      },
+      scales: {
+        x: { grid: { color: c.grid }, ticks: { color: c.text, font: { family: 'JetBrains Mono', size: 10 } } },
+        y: { beginAtZero: true, grid: { color: c.grid }, ticks: { color: c.text, font: { family: 'JetBrains Mono', size: 10 } } }
+      }
+    }
   });
 
   storageChart = new Chart(ctxS, {
     type: 'bar',
     data: {
       labels: ['node-1', 'node-2', 'node-3'],
-      datasets: [{ label: 'Used Storage (KB)', data: [0, 0, 0], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'], borderRadius: 6 }]
+      datasets: [{ label: 'Used Storage (KB)', data: [0, 0, 0], backgroundColor: ['#6366f1', '#06b6d4', '#10b981'], borderRadius: 6 }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: c.tooltipBg, titleColor: c.tooltipText, bodyColor: c.tooltipText, borderColor: c.tooltipBorder, borderWidth: 1 }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: c.text, font: { family: 'JetBrains Mono', size: 11 } } },
+        y: { beginAtZero: true, grid: { color: c.grid }, ticks: { color: c.text, font: { family: 'JetBrains Mono', size: 10 } } }
+      }
+    }
+  });
+}
+
+function updateChartThemes() {
+  if (!throughputChart || !storageChart) return;
+  const c = getChartThemeColors();
+  [throughputChart, storageChart].forEach(chart => {
+    if (chart.options.scales.x) {
+      chart.options.scales.x.ticks.color = c.text;
+      if (chart.options.scales.x.grid) chart.options.scales.x.grid.color = c.grid;
+    }
+    if (chart.options.scales.y) {
+      chart.options.scales.y.ticks.color = c.text;
+      if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = c.grid;
+    }
+    chart.update();
   });
 }
 
@@ -500,19 +1413,29 @@ async function loadMetrics(){
   }
 }
 
-/* ---------- summary ---------- */
+/* ---------- Periodic Refresh ---------- */
 async function refresh(){
-  const {data:s} = await api('GET', '/api/summary');
-  $('sFiles').textContent = s.files; $('sBytes').textContent = s.bytes;
+  const {data: s} = await api('GET', '/api/summary');
+  $('sFiles').textContent = s.files;
+  $('sBytes').textContent = s.bytes;
   $('sNodes').textContent = `${s.nodes_up} / ${s.nodes}`;
-  $('sRisk').textContent = s.at_risk; $('sRisk').style.color = s.at_risk ? 'var(--warn)' : '';
-  $('chunkKb').textContent = s.chunk_kb; $('rep').textContent = s.replication;
+  $('sRisk').textContent = s.at_risk;
+  $('sRisk').style.color = s.at_risk > 0 ? 'var(--warn)' : '';
+  $('chunkKb').textContent = s.chunk_kb;
+  $('rep').textContent = s.replication;
   if (s.strategy) $('sStrat').textContent = s.strategy;
-  $('log').innerHTML = s.events.map(e => `<div><span class="t">${e.t}</span><span class="${e.kind}">${esc(e.msg)}</span></div>`).join('');
+  
+  $('log').innerHTML = s.events.map(e => `<div>
+    <span class="t">${e.t}</span>
+    <span class="${e.kind}">${esc(e.msg)}</span>
+  </div>`).join('');
+  
   await Promise.all([loadFiles(s.replication), loadNodes(), loadMetrics()]);
 }
+
 initCharts();
-refresh(); setInterval(refresh, 3000);
+refresh();
+setInterval(refresh, 3000);
 </script>
 </body>
 </html>
