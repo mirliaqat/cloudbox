@@ -1,0 +1,12 @@
+__pycache__
+*.py[cod]
+*$py.class
+.git
+.gitignore
+.vscode
+.idea
+data/secret.key
+data/metrics.db*
+data/*.tmp
+data/node-*/*
+!data/node-*/.gitkeep

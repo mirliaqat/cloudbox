@@ -8,6 +8,7 @@ Open:  http://localhost:8000
 import hashlib
 import hmac
 import logging
+import os
 import time
 from collections import deque
 from pathlib import Path
@@ -20,7 +21,8 @@ from metrics import MetricsDB
 from node import StorageNode
 from storage import CHUNK_SIZE, REPLICATION, CloudStorage, StorageError
 
-PORT = 8000
+PORT = int(os.environ.get("PORT", 8000))
+HOST = os.environ.get("HOST", "0.0.0.0")
 BASE = Path(__file__).parent
 DATA = BASE / "data"
 MAX_MB = 50
@@ -36,6 +38,31 @@ events = deque(maxlen=80)
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = MAX_MB * 1024 * 1024
+_initialized = False
+
+
+def init_app():
+    global _initialized
+    if _initialized:
+        return
+    _initialized = True
+    for n in nodes.values():
+        n.start()
+    orphans = store.cleanup_orphans()
+    if orphans:
+        log(f"Cleaned up {orphans} incomplete upload(s) from previous session", "warn")
+    store.process_pending_deletes()
+
+    def on_auto_repair(copied):
+        log(f"Self-healing: automatically restored {copied} chunk cop{'y' if copied == 1 else 'ies'}", "ok")
+
+    store.start_health_monitor(interval=10, on_repair=on_auto_repair)
+    log(f"Started 3 storage nodes; {len(store.files())} file(s) in storage; self-healing active (10s)", "ok")
+
+
+@app.before_request
+def ensure_initialized():
+    init_app()
 
 
 def log(msg, kind="info"):
@@ -264,21 +291,9 @@ CloudBox share links are signed (HMAC-SHA256) and expire. Ask the owner for a ne
 
 
 if __name__ == "__main__":
-    for n in nodes.values():
-        n.start()
-    # Phase 1: clean up incomplete uploads from previous session
-    orphans = store.cleanup_orphans()
-    if orphans:
-        log(f"Cleaned up {orphans} incomplete upload(s) from previous session", "warn")
-    store.process_pending_deletes()
-    # Phase 3: start background health monitor & self-healing loop
-    def on_auto_repair(copied):
-        log(f"Self-healing: automatically restored {copied} chunk cop{'y' if copied == 1 else 'ies'}", "ok")
-
-    store.start_health_monitor(interval=10, on_repair=on_auto_repair)
-    log(f"Started 3 storage nodes; {len(store.files())} file(s) in storage; self-healing active (10s)", "ok")
+    init_app()
     print("\n  CloudBox is running")
-    print(f"  Open:   http://localhost:{PORT}")
+    print(f"  Open:   http://localhost:{PORT} (bound to {HOST})")
     print("  Nodes:  node-1 :8001, node-2 :8002, node-3 :8003")
     print("  Stop:   Ctrl + C\n")
-    app.run(host="127.0.0.1", port=PORT, threaded=True, use_reloader=False)
+    app.run(host=HOST, port=PORT, threaded=True, use_reloader=False)
