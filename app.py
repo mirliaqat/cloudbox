@@ -41,6 +41,10 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_MB * 1024 * 1024
 _initialized = False
 
 
+def log(msg, kind="info"):
+    events.appendleft({"t": time.strftime("%H:%M:%S"), "msg": msg, "kind": kind})
+
+
 def init_app():
     global _initialized
     if _initialized:
@@ -60,13 +64,12 @@ def init_app():
     log(f"Started 3 storage nodes; {len(store.files())} file(s) in storage; self-healing active (10s)", "ok")
 
 
+init_app()
+
+
 @app.before_request
 def ensure_initialized():
     init_app()
-
-
-def log(msg, kind="info"):
-    events.appendleft({"t": time.strftime("%H:%M:%S"), "msg": msg, "kind": kind})
 
 
 def human(n):

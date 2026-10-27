@@ -87,31 +87,50 @@ class CloudStorage:
                 return {"node": node_name, "up": True, "status": "healthy", **data}
         except requests.RequestException:
             pass
-        return {"node": node_name, "up": False, "status": "unreachable"}
+        return node.direct_health()
 
     def _put(self, node, chunk_id, blob):
-        try:
-            return self.http.put(self._url(node, chunk_id), data=blob, timeout=3).ok
-        except requests.RequestException:
+        node_obj = self.nodes.get(node)
+        if not node_obj or not node_obj.up:
             return False
+        try:
+            r = self.http.put(self._url(node, chunk_id), data=blob, timeout=3)
+            if r.ok:
+                return True
+        except requests.RequestException:
+            pass
+        return node_obj.direct_put(chunk_id, blob)
 
     def _get(self, node, chunk_id):
+        node_obj = self.nodes.get(node)
+        if not node_obj or not node_obj.up:
+            return None
         try:
             r = self.http.get(self._url(node, chunk_id), timeout=3)
-            return r.content if r.ok else None
+            if r.ok:
+                return r.content
         except requests.RequestException:
-            return None
+            pass
+        return node_obj.direct_get(chunk_id)
+
+    def _delete_node_chunk(self, node, chunk_id):
+        node_obj = self.nodes.get(node)
+        if not node_obj or not node_obj.up:
+            return False
+        try:
+            r = self.http.delete(self._url(node, chunk_id), timeout=3)
+            if r.ok:
+                return True
+        except requests.RequestException:
+            pass
+        return node_obj.direct_delete(chunk_id)
 
     # ---------------- Phase 1: cleanup helpers ----------------
     def _cleanup_chunks(self, chunks):
         """Remove stored chunks from nodes after a failed upload."""
         for c in chunks:
             for node in c["nodes"]:
-                if self.nodes[node].up:
-                    try:
-                        self.http.delete(self._url(node, c["id"]), timeout=3)
-                    except requests.RequestException:
-                        pass
+                self._delete_node_chunk(node, c["id"])
 
     def cleanup_orphans(self):
         """Remove metadata entries stuck in 'uploading' status (interrupted uploads).
@@ -125,11 +144,7 @@ class CloudStorage:
                 entry = self.meta["files"].pop(fid)
                 for c in entry.get("chunks", []):
                     for node in c["nodes"]:
-                        if self.nodes[node].up:
-                            try:
-                                self.http.delete(self._url(node, c["id"]), timeout=3)
-                            except requests.RequestException:
-                                pass
+                        self._delete_node_chunk(node, c["id"])
             self._save()
         return len(orphans)
 
@@ -151,10 +166,9 @@ class CloudStorage:
                 continue
             failed = []
             for cid in chunk_ids:
-                try:
-                    self.http.delete(self._url(node, cid), timeout=3)
+                if self._delete_node_chunk(node, cid):
                     cleaned += 1
-                except requests.RequestException:
+                else:
                     failed.append(cid)
             results[node] = failed
 
@@ -196,7 +210,9 @@ class CloudStorage:
                 loads[name] = {"bytes": stats.get("bytes", 0),
                                "chunks": stats.get("chunks", 0)}
             except requests.RequestException:
-                loads[name] = {"bytes": 0, "chunks": 0}
+                h = node.direct_health()
+                loads[name] = {"bytes": h.get("bytes", 0),
+                               "chunks": h.get("chunks", 0)}
         return loads
 
     def load_score(self, node_name, stats=None):
@@ -492,9 +508,7 @@ class CloudStorage:
         for c in entry.get("chunks", []):
             for node in c["nodes"]:
                 if self.nodes[node].up:
-                    try:
-                        self.http.delete(self._url(node, c["id"]), timeout=3)
-                    except requests.RequestException:
+                    if not self._delete_node_chunk(node, c["id"]):
                         pending_nodes.setdefault(node, []).append(c["id"])
                 else:
                     pending_nodes.setdefault(node, []).append(c["id"])
@@ -704,7 +718,7 @@ class CloudStorage:
                     s.update(self.http.get(
                         f"http://127.0.0.1:{node.port}/stats", timeout=1).json())
                 except requests.RequestException:
-                    pass
+                    s.update(node.direct_health())
             s["name"] = name
             out.append(s)
 

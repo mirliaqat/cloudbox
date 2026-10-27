@@ -20,15 +20,65 @@ class StorageNode:
         self.folder = Path(folder)
         self.folder.mkdir(parents=True, exist_ok=True)
         self.server = None
+        self._running = False
 
     @property
     def up(self):
-        return self.server is not None
+        return self._running
 
     def _path(self, chunk_id):
         if not CHUNK_ID.match(chunk_id):
             raise ValueError("bad chunk id")
         return self.folder / chunk_id
+
+    def direct_put(self, chunk_id, data):
+        """Direct disk write for environments where local HTTP sockets are blocked."""
+        if not self._running:
+            return False
+        try:
+            path = self._path(chunk_id)
+        except ValueError:
+            return False
+        tmp = path.with_suffix(".tmp")
+        tmp.write_bytes(data)
+        os.replace(tmp, path)
+        return True
+
+    def direct_get(self, chunk_id):
+        """Direct disk read for environments where local HTTP sockets are blocked."""
+        if not self._running:
+            return None
+        try:
+            path = self._path(chunk_id)
+        except ValueError:
+            return None
+        if not path.exists():
+            return None
+        return path.read_bytes()
+
+    def direct_delete(self, chunk_id):
+        """Direct disk deletion for environments where local HTTP sockets are blocked."""
+        if not self._running:
+            return False
+        try:
+            self._path(chunk_id).unlink(missing_ok=True)
+            return True
+        except Exception:
+            return False
+
+    def direct_health(self):
+        """Direct disk health statistics."""
+        if not self._running:
+            return {"node": self.name, "up": False, "status": "unreachable", "chunks": 0, "bytes": 0}
+        files = [f for f in self.folder.iterdir() if CHUNK_ID.match(f.name)]
+        return {
+            "status": "healthy",
+            "node": self.name,
+            "port": self.port,
+            "up": True,
+            "chunks": len(files),
+            "bytes": sum(f.stat().st_size for f in files)
+        }
 
     def _app(self):
         app = Flask(f"node-{self.name}")
@@ -82,15 +132,25 @@ class StorageNode:
         return app
 
     def start(self):
-        if self.server:
+        if self._running:
             return
-        self.server = make_server("127.0.0.1", self.port, self._app(), threaded=True)
-        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self._running = True
+        try:
+            self.server = make_server("127.0.0.1", self.port, self._app(), threaded=True)
+            threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        except Exception:
+            # Platform socket restriction (e.g. PythonAnywhere restricts custom port binding)
+            self.server = None
 
     def stop(self):
-        """Simulates a crash: the server stops answering, but its disk is kept."""
-        if not self.server:
+        """Simulates a crash: the node stops answering, but its disk is kept."""
+        if not self._running:
             return
-        server, self.server = self.server, None
-        server.shutdown()
-        server.server_close()
+        self._running = False
+        if self.server:
+            server, self.server = self.server, None
+            try:
+                server.shutdown()
+                server.server_close()
+            except Exception:
+                pass
